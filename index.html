@@ -28,9 +28,9 @@
     <button onclick="checkPassword()" id="adminBtn">Log Transaction (Admin Only)</button>
     
     <div id="transactionForm" style="display:none; margin-top:15px; border-top: 1px solid #ddd; padding-top:10px;">
+        <div id="savingsForm" style="display:none;"> </div>
         <label>Member:</label>
         <select id="memberSelect"></select><br><br>
-        
         <label>Type:</label>
         <select id="typeSelect">
             <option value="Deposit">Deposit</option>
@@ -78,7 +78,14 @@ async function loadData() {
             displayEmptyMembers(container);
             return;
         }
-
+function checkPassword() {
+    let password = prompt("Enter Admin Password:");
+    if (password === "1234") { // You can change '1234' to your own secret code
+        document.getElementById('savingsForm').style.display = 'block';
+    } else {
+        alert("Incorrect Password");
+    }
+}
         // ... (The rest of your calculation logic here) ...
         renderDashboard(transactions);
 
