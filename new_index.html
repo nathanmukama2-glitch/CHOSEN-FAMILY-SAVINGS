@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Savings Tracker</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 10px; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .member-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .status-low { color: red; font-weight: bold; }
+        .status-ok { color: green; }
+        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <h2>Group Savings Dashboard</h2>
+    
+    <div class="card">
+        <h3>Group Goal: 50,000 UGX per member</h3>
+        <p>Total Members: 14</p>
+    </div>
+
+    <div class="member-list" id="memberStats">
+        </div>
+
+    <div class="card">
+        <h3>Add New Transaction</h3>
+        <button onclick="openForm()">Log Deposit / Loan</button>
+    </div>
+
+    <script>
+        const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
+        
+        // This is where we will later connect to your Google Sheet
+        function displayMembers() {
+            const container = document.getElementById('memberStats');
+            members.forEach(name => {
+                container.innerHTML += `
+                    <div class="card">
+                        <strong>${name}</strong><br>
+                        Saved: 0 UGX<br>
+                        <span class="status-low">Need: 50,000</span>
+                    </div>`;
+            });
+        }
+        displayMembers();
+    </script>
+</body>
+</html>
