@@ -23,7 +23,28 @@
 
     <div class="member-list" id="memberStats">
         </div>
-
+<div class="card" id="adminArea">
+    <h3>Admin Tools</h3>
+    <button onclick="checkPassword()" id="adminBtn">Log Transaction (Admin Only)</button>
+    
+    <div id="transactionForm" style="display:none; margin-top:15px; border-top: 1px solid #ddd; padding-top:10px;">
+        <label>Member:</label>
+        <select id="memberSelect"></select><br><br>
+        
+        <label>Type:</label>
+        <select id="typeSelect">
+            <option value="Deposit">Deposit</option>
+            <option value="Loan">Loan</option>
+            <option value="Loan Repayment">Loan Repayment</option>
+            <option value="Burial Expense">Burial Expense</option>
+        </select><br><br>
+        
+        <label>Amount (UGX):</label>
+        <input type="number" id="amountInput" placeholder="Enter amount"><br><br>
+        
+        <button onclick="submitTransaction()" style="background:#007bff;">Save to Google Sheet</button>
+    </div>
+</div>
     <div class="card">
         <h3>Add New Transaction</h3>
         <button onclick="openForm()">Log Deposit / Loan</button>
@@ -138,6 +159,45 @@ async function loadData() {
                 <span class="${statusClass}">${remaining <= 0 ? "Goal Reached!" : "Remaining: " + remaining.toLocaleString()}</span>
             </div>`;
     });
+}
+        const ADMIN_PASSWORD = "yourChoice123"; // Change this to your secret password
+
+function checkPassword() {
+    const entry = prompt("Enter Admin Password:");
+    if (entry === ADMIN_PASSWORD) {
+        document.getElementById('transactionForm').style.display = 'block';
+        document.getElementById('adminBtn').style.display = 'none';
+        setupDropdown();
+    } else {
+        alert("Incorrect Password");
+    }
+}
+
+function setupDropdown() {
+    const select = document.getElementById('memberSelect');
+    select.innerHTML = '<option value="Group">Group (for Burial)</option>'; // Option for Burial
+    members.forEach(m => {
+        select.innerHTML += `<option value="${m}">${m}</option>`;
+    });
+}
+
+async function submitTransaction() {
+    const name = document.getElementById('memberSelect').value;
+    const type = document.getElementById('typeSelect').value;
+    const amount = document.getElementById('amountInput').value;
+    
+    if(!amount || amount <= 0) return alert("Please enter a valid amount");
+
+    // Sending data to your Google Script
+    const response = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ name, type, amount, date: new Date().toLocaleDateString() })
+    });
+
+    if (response.ok) {
+        alert("Transaction Saved!");
+        location.reload(); // Refresh to show new totals
+    }
 }
 
 loadData();
