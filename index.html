@@ -115,6 +115,14 @@ function displayEmptyMembers(container) {
         .catch(error => console.error('Error!', error.message));
     }
 });
+    function openForm() {
+    document.getElementById('savingsForm').style.display = 'block';
+}
+
+function checkPassword() {
+    // We can add actual password logic here later!
+    alert("Admin access granted");
+}
 
 // Start the process
 loadData();
