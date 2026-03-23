@@ -44,14 +44,49 @@
         
         <button onclick="submitTransaction()" style="background:#007bff;">Save to Google Sheet</button>
     </div>
-</div>
-    <div class="card">
-        <h3>Add New Transaction</h3>
-        <button onclick="openForm()">Log Deposit / Loan</button>
-        <button type="button" id="undoBtn" class="btn btn-outline-danger btn-block mt-2">
-    ⚠️ Undo Last Entry
-</button>
+<div id="savingsFormContainer" class="container mt-4 mb-4 p-4 bg-white rounded shadow-sm">
+    <h3 class="mb-3">Add New Transaction</h3>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Member Name</label>
+            <select id="memberName" class="form-select">
+                <option value="">-- Select Member --</option>
+                <option value="Nathan">Nathan</option>
+                <option value="Brian">Brian</option>
+                <option value="Shakirah">Shakirah</option>
+                <option value="Ashiraf">Ashiraf</option>
+                <option value="Fixer">Fixer</option>
+                <option value="Fadiga">Fadiga</option>
+                <option value="Tracy">Tracy</option>
+                <option value="Jackson">Jackson</option>
+                </select>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Amount (UGX)</label>
+            <input type="number" id="amount" class="form-control" placeholder="Enter amount">
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Transaction Type</label>
+            <select id="transType" class="form-select">
+                <option value="Savings">Savings</option>
+                <option value="Loan">Loan</option>
+                <option value="Expense">Expense</option>
+            </select>
+        </div>
     </div>
+
+    <div class="mt-3">
+        <button onclick="submitData()" class="btn btn-success w-100 mb-2 py-2">
+            Submit Transaction
+        </button>
+        <button onclick="undoLastEntry()" class="btn btn-outline-danger w-100 py-2">
+            ⚠️ Undo Last Entry
+        </button>
+    </div>
+</div>
 <script>
    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
 function renderDashboard(data) {
