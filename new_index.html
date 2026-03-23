@@ -53,7 +53,66 @@ async function loadData() {
     const transactions = await response.json();
     
     const container = document.getElementById('memberStats');
-    container.innerHTML = ""; // Clear loading text
+    container.innerHTML = ""; 
+
+    // 1. Calculate Total Burial Expenses first
+    let totalBurialCosts = 0;
+    transactions.forEach(t => {
+        if (t.type === "Burial Expense") {
+            totalBurialCosts += Number(t.amount);
+        }
+    });
+
+    // Each person's share of the burial cost
+    const sharePerPerson = totalBurialCosts / 14;
+
+    // 2. Calculate each member's status
+    members.forEach(member => {
+        let actualDeposits = 0;
+        let borrowedAmount = 0;
+
+        transactions.forEach(t => {
+            if (t.name === member) {
+                if (t.type === "Deposit" || t.type === "Loan Repayment") {
+                    actualDeposits += Number(t.amount);
+                }
+                if (t.type === "Loan") {
+                    borrowedAmount += Number(t.amount);
+                }
+            }
+        });
+
+        // Current Balance = Deposits - Share of Burial Expenses
+        const currentBalance = actualDeposits - sharePerPerson;
+        const remainingToGoal = 50000 - currentBalance;
+        
+        // Loan logic: 5% interest
+        const interest = borrowedAmount * 0.05;
+        const totalOwed = borrowedAmount + interest;
+
+        const statusClass = remainingToGoal <= 0 ? "status-ok" : "status-low";
+
+        container.innerHTML += `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${member}</strong>
+                    <span class="${statusClass}">${remainingToGoal <= 0 ? "✔ Done" : "Pending"}</span>
+                </div>
+                <hr>
+                <p>Net Savings: <strong>${Math.max(0, currentBalance).toLocaleString()} UGX</strong></p>
+                
+                ${sharePerPerson > 0 ? `<small style="color:red">Burial Contribution: -${sharePerPerson.toLocaleString()}</small><br>` : ''}
+                
+                ${remainingToGoal > 0 ? `<span>Need to add: <b>${remainingToGoal.toLocaleString()}</b></span>` : '<b>Goal 50k Met!</b>'}
+                
+                ${borrowedAmount > 0 ? `
+                    <div style="margin-top:10px; padding:5px; background:#fff3cd; border-radius:4px;">
+                        <small>Loan: ${borrowedAmount.toLocaleString()} + 5% Int.</small><br>
+                        <strong>Total Due: ${totalOwed.toLocaleString()} UGX</strong>
+                    </div>` : ''}
+            </div>`;
+    });
+}
 
     members.forEach(member => {
         // Calculate totals for each person
