@@ -49,157 +49,58 @@
         <h3>Add New Transaction</h3>
         <button onclick="openForm()">Log Deposit / Loan</button>
     </div>
+<script>
+   const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
 
-    <script>
-        const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
-        
-        // This is where we will later connect to your Google Sheet
-        function displayMembers() {
-            const container = document.getElementById('memberStats');
-            members.forEach(name => {
-                container.innerHTML += `
-                    <div class="card">
-                        <strong>${name}</strong><br>
-                        Saved: 0 UGX<br>
-                        <span class="status-low">Need: 50,000</span>
-                    </div>`;
-            });
-        }
-        displayMembers();
-        const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
-const scriptURL = "https://script.google.com/macros/s/AKfycbwb7IJYrJTsO3MvR_xdNZs7uPRXYC9VRIH1mTinAMIb6gSiDkbsyJdWfDq4MrtLaWgk/exec";
+// 1. DOUBLE CHECK THIS URL - It must end in /exec
+const scriptURL = "https://script.google.com/macros/s/AKfycbz7hugM9YOVb3Sm-BiluvjluccRmrxly69Kz9JUmSqThBNzjA0kawMGJ3viS6J3AKED/exec"; 
 
 async function loadData() {
-    const response = await fetch(scriptURL);
-    const transactions = await response.json();
-    
+    console.log("Attempting to fetch data...");
     const container = document.getElementById('memberStats');
-    container.innerHTML = ""; 
-
-    // 1. Calculate Total Burial Expenses first
-    let totalBurialCosts = 0;
-    transactions.forEach(t => {
-        if (t.type === "Burial Expense") {
-            totalBurialCosts += Number(t.amount);
-        }
-    });
-
-    // Each person's share of the burial cost
-    const sharePerPerson = totalBurialCosts / 14;
-
-    // 2. Calculate each member's status
-    members.forEach(member => {
-        let actualDeposits = 0;
-        let borrowedAmount = 0;
-
-        transactions.forEach(t => {
-            if (t.name === member) {
-                if (t.type === "Deposit" || t.type === "Loan Repayment") {
-                    actualDeposits += Number(t.amount);
-                }
-                if (t.type === "Loan") {
-                    borrowedAmount += Number(t.amount);
-                }
-            }
-        });
-
-        // Current Balance = Deposits - Share of Burial Expenses
-        const currentBalance = actualDeposits - sharePerPerson;
-        const remainingToGoal = 50000 - currentBalance;
+    
+    try {
+        const response = await fetch(scriptURL);
         
-        // Loan logic: 5% interest
-        const interest = borrowedAmount * 0.05;
-        const totalOwed = borrowedAmount + interest;
+        if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+        }
 
-        const statusClass = remainingToGoal <= 0 ? "status-ok" : "status-low";
+        const transactions = await response.json();
+        console.log("Data received:", transactions);
 
-        container.innerHTML += `
-            <div class="card">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${member}</strong>
-                    <span class="${statusClass}">${remainingToGoal <= 0 ? "✔ Done" : "Pending"}</span>
-                </div>
-                <hr>
-                <p>Net Savings: <strong>${Math.max(0, currentBalance).toLocaleString()} UGX</strong></p>
-                
-                ${sharePerPerson > 0 ? `<small style="color:red">Burial Contribution: -${sharePerPerson.toLocaleString()}</small><br>` : ''}
-                
-                ${remainingToGoal > 0 ? `<span>Need to add: <b>${remainingToGoal.toLocaleString()}</b></span>` : '<b>Goal 50k Met!</b>'}
-                
-                ${borrowedAmount > 0 ? `
-                    <div style="margin-top:10px; padding:5px; background:#fff3cd; border-radius:4px;">
-                        <small>Loan: ${borrowedAmount.toLocaleString()} + 5% Int.</small><br>
-                        <strong>Total Due: ${totalOwed.toLocaleString()} UGX</strong>
-                    </div>` : ''}
-            </div>`;
-    });
+        if (transactions.length === 0) {
+            container.innerHTML = "<p>Connected! But no transactions found in the sheet yet.</p>";
+            // If the sheet is empty, still show the member names with 0 balance
+            displayEmptyMembers(container);
+            return;
+        }
+
+        // ... (The rest of your calculation logic here) ...
+        renderDashboard(transactions);
+
+    } catch (error) {
+        console.error("Fetch error:", error);
+        container.innerHTML = `<div style="color:red; padding:20px;">
+            <strong>Connection Error!</strong><br>
+            Make sure your Google Script is deployed as 'Anyone' and the URL is correct.<br>
+            <small>${error.message}</small>
+        </div>`;
+    }
 }
 
+function displayEmptyMembers(container) {
     members.forEach(member => {
-        // Calculate totals for each person
-        let saved = 0;
-        let borrowed = 0;
-
-        transactions.forEach(t => {
-            if (t.name === member) {
-                if (t.type === "Deposit") saved += t.amount;
-                if (t.type === "Loan") borrowed += t.amount;
-                if (t.type === "Loan Repayment") saved += t.amount;
-            }
-        });
-
-        const remaining = 50000 - saved;
-        const statusClass = remaining <= 0 ? "status-ok" : "status-low";
-
         container.innerHTML += `
             <div class="card">
                 <strong>${member}</strong><br>
-                Saved: ${saved.toLocaleString()} UGX<br>
-                ${borrowed > 0 ? `<small style="color:orange">Borrowed: ${borrowed} + 5% Int.</small><br>` : ''}
-                <span class="${statusClass}">${remaining <= 0 ? "Goal Reached!" : "Remaining: " + remaining.toLocaleString()}</span>
+                Saved: 0 UGX<br>
+                <span class="status-low">Remaining: 50,000</span>
             </div>`;
     });
 }
-        const ADMIN_PASSWORD = "yourChoice123"; // Change this to your secret password
 
-function checkPassword() {
-    const entry = prompt("Enter Admin Password:");
-    if (entry === ADMIN_PASSWORD) {
-        document.getElementById('transactionForm').style.display = 'block';
-        document.getElementById('adminBtn').style.display = 'none';
-        setupDropdown();
-    } else {
-        alert("Incorrect Password");
-    }
-}
-
-function setupDropdown() {
-    const select = document.getElementById('memberSelect');
-    select.innerHTML = '<option value="Group">Group (for Burial)</option>'; // Option for Burial
-    members.forEach(m => {
-        select.innerHTML += `<option value="${m}">${m}</option>`;
-    });
-}
-
-async function submitTransaction() {
-    const name = document.getElementById('memberSelect').value;
-    const type = document.getElementById('typeSelect').value;
-    const amount = document.getElementById('amountInput').value;
-    
-    if(!amount || amount <= 0) return alert("Please enter a valid amount");
-
-    // Sending data to your Google Script
-    const response = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ name, type, amount, date: new Date().toLocaleDateString() })
-    });
-
-    if (response.ok) {
-        alert("Transaction Saved!");
-        location.reload(); // Refresh to show new totals
-    }
-}
-
+// Start the process
 loadData();
     </script>
 </body>
