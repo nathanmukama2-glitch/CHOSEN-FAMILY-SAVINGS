@@ -6,22 +6,29 @@
     <title>Chosen Family Savings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; }
-        .admin-card { background: #ffffff; border-radius: 15px; border-top: 5px solid #28a745; }
-        .member-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .admin-panel { background: white; border-radius: 15px; border-top: 6px solid #198754; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .member-card { border: none; border-radius: 12px; transition: 0.3s; background: white; }
+        .member-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .goal-met { border-left: 5px solid #198754; }
+        .goal-pending { border-left: 5px solid #dc3545; }
     </style>
 </head>
 <body>
 
-<div class="container py-4">
-    <h2 class="text-center fw-bold mb-4">Group Savings Dashboard</h2>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Chosen Family Savings</h1>
+        <p class="badge bg-dark fs-6">Target: 50,000 UGX per Member</p>
+    </div>
 
-    <div class="admin-card p-4 mb-5 shadow-sm">
-        <h4 class="mb-3">Add Transaction</h4>
+    <div class="admin-panel p-4 mb-5">
+        <h4 class="fw-bold text-success mb-4 text-center">Admin Data Entry</h4>
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label">Member Name</label>
-                <select id="name" class="form-select">
+                <label class="form-label fw-bold">Select Member</label>
+                <select id="nameInput" class="form-select form-select-lg">
+                    <option value="">-- Choose Name --</option>
                     <option value="Nathan">Nathan</option>
                     <option value="Brian">Brian</option>
                     <option value="Shakirah">Shakirah</option>
@@ -30,88 +37,115 @@
                     <option value="Fadiga">Fadiga</option>
                     <option value="Tracy">Tracy</option>
                     <option value="Jackson">Jackson</option>
+                    <option value="Fred">Fred</option>
+                    <option value="Annet">Annet</option>
+                    <option value="Mama Mary">Mama Mary</option>
+                    <option value="Majorine">Majorine</option>
+                    <option value="Allan">Allan</option>
+                    <option value="Sandra">Sandra</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Amount (UGX)</label>
-                <input type="number" id="amt" class="form-control" placeholder="5000">
+                <label class="form-label fw-bold">Amount (UGX)</label>
+                <input type="number" id="amtInput" class="form-control form-select-lg" placeholder="e.g. 5000">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Type</label>
-                <select id="type" class="form-select">
+                <label class="form-label fw-bold">Type</label>
+                <select id="typeInput" class="form-select form-select-lg">
                     <option value="Savings">Savings</option>
                     <option value="Loan">Loan</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button onclick="sendData()" class="btn btn-success w-100">Submit</button>
+                <button onclick="saveToSheet()" id="btnSubmit" class="btn btn-success btn-lg w-100">Submit</button>
             </div>
         </div>
-        <button onclick="undo()" class="btn btn-link text-danger mt-3 p-0" style="text-decoration:none">Undo last entry</button>
+        <div class="text-center mt-3">
+            <button onclick="undoLast()" class="btn btn-link text-danger text-decoration-none small">⚠️ Undo Last Entry</button>
+        </div>
     </div>
 
-    <div id="display-area" class="row">
-        <div class="text-center">Loading savings data...</div>
+    <div id="dashboard" class="row">
+        <div class="text-center text-muted">Fetching latest totals...</div>
     </div>
 </div>
 
 <script>
-    const url = 'https://script.google.com/macros/s/AKfycbwQyVLdXhheH2Ddfaqj8soep8a6bSu5yi4i3Cfl0kGPs9LbovqToKzche8eYgL1g5tX/exec'; // <--- PUT YOUR DEPLOYMENT URL HERE
+    // CONFIGURATION
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzRLAPvD5qrrlKwVVQw_dnAAfAHjnYbIh2JyFjDuMCyLVlBqNs-ZMkJ6n2wd5SeEYGw/exec'; // <--- PASTE YOUR URL HERE
     const goal = 50000;
-    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Jackson"];
+    const allMembers = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Jackson", "Fred", "Annet", "Mama Mary", "Majorine", "Allan", "Sandra"];
 
-    window.onload = getData;
+    window.onload = fetchSheetData;
 
-    async function getData() {
+    async function fetchSheetData() {
         try {
-            const res = await fetch(url);
-            const data = await res.json();
-            render(data);
-        } catch (e) { document.getElementById('display-area').innerHTML = "Error loading data."; }
+            const response = await fetch(scriptURL);
+            const data = await response.json();
+            updateUI(data);
+        } catch (e) { document.getElementById('dashboard').innerHTML = "Check connection or URL."; }
     }
 
-    function render(data) {
-        const area = document.getElementById('display-area');
-        area.innerHTML = "";
+    function updateUI(rows) {
+        const dashboard = document.getElementById('dashboard');
+        dashboard.innerHTML = "";
         let totals = {};
         
-        // Summing up logic
-        for(let i=1; i<data.length; i++) {
-            let n = data[i][1];
-            let a = parseFloat(data[i][2]) || 0;
-            if(n) totals[n] = (totals[n] || 0) + a;
+        // Skip header [0], calculate sums
+        for(let i=1; i<rows.length; i++) {
+            let name = rows[i][1];
+            let amount = parseFloat(rows[i][2]) || 0;
+            if(name) totals[name] = (totals[name] || 0) + amount;
         }
 
-        members.forEach(m => {
-            let s = totals[m] || 0;
-            let r = Math.max(0, goal - s);
-            area.innerHTML += `
-                <div class="col-md-3 mb-3">
-                    <div class="card member-card p-3">
-                        <h5 class="fw-bold">${m}</h5>
-                        <p class="mb-1">Saved: ${s.toLocaleString()} UGX</p>
-                        <p class="small ${r === 0 ? 'text-success fw-bold' : 'text-danger'}">
-                            ${r === 0 ? 'GOAL MET!' : 'Remaining: ' + r.toLocaleString()}
-                        </p>
+        allMembers.sort().forEach(member => {
+            let saved = totals[member] || 0;
+            let left = Math.max(0, goal - saved);
+            let met = saved >= goal;
+
+            dashboard.innerHTML += `
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card member-card p-3 shadow-sm ${met ? 'goal-met' : 'goal-pending'}">
+                        <h5 class="fw-bold mb-1">${member}</h5>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Saved:</small>
+                            <span class="fw-bold">${saved.toLocaleString()}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Status:</small>
+                            <span class="${met ? 'text-success fw-bold' : 'text-danger'}">
+                                ${met ? 'DONE' : '-' + left.toLocaleString()}
+                            </span>
+                        </div>
                     </div>
                 </div>`;
         });
     }
 
-    async function sendData() {
-        const n = document.getElementById('name').value;
-        const a = document.getElementById('amt').value;
-        const t = document.getElementById('type').value;
-        if(!a) return alert("Enter amount");
+    async function saveToSheet() {
+        const m = document.getElementById('nameInput').value;
+        const a = document.getElementById('amtInput').value;
+        const t = document.getElementById('typeInput').value;
+        const btn = document.getElementById('btnSubmit');
 
-        await fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({member: n, amount: a, type: t}) });
-        alert("Saved!");
+        if(!m || !a) return alert("Fill Name and Amount!");
+
+        btn.disabled = true;
+        btn.innerText = "Saving...";
+
+        await fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify({member: m, amount: a, type: t}) 
+        });
+
+        alert("Data sent!");
         location.reload();
     }
 
-    async function undo() {
-        if(confirm("Delete last entry?")) {
-            await fetch(url + "?action=deleteLast");
+    async function undoLast() {
+        if(confirm("Delete the very last record?")) {
+            await fetch(scriptURL + "?action=deleteLast");
             location.reload();
         }
     }
