@@ -45,6 +45,43 @@
             });
         }
         displayMembers();
+        const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
+const scriptURL = "https://script.google.com/macros/s/AKfycbwb7IJYrJTsO3MvR_xdNZs7uPRXYC9VRIH1mTinAMIb6gSiDkbsyJdWfDq4MrtLaWgk/exec";
+
+async function loadData() {
+    const response = await fetch(scriptURL);
+    const transactions = await response.json();
+    
+    const container = document.getElementById('memberStats');
+    container.innerHTML = ""; // Clear loading text
+
+    members.forEach(member => {
+        // Calculate totals for each person
+        let saved = 0;
+        let borrowed = 0;
+
+        transactions.forEach(t => {
+            if (t.name === member) {
+                if (t.type === "Deposit") saved += t.amount;
+                if (t.type === "Loan") borrowed += t.amount;
+                if (t.type === "Loan Repayment") saved += t.amount;
+            }
+        });
+
+        const remaining = 50000 - saved;
+        const statusClass = remaining <= 0 ? "status-ok" : "status-low";
+
+        container.innerHTML += `
+            <div class="card">
+                <strong>${member}</strong><br>
+                Saved: ${saved.toLocaleString()} UGX<br>
+                ${borrowed > 0 ? `<small style="color:orange">Borrowed: ${borrowed} + 5% Int.</small><br>` : ''}
+                <span class="${statusClass}">${remaining <= 0 ? "Goal Reached!" : "Remaining: " + remaining.toLocaleString()}</span>
+            </div>`;
+    });
+}
+
+loadData();
     </script>
 </body>
 </html>
