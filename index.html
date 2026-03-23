@@ -1,213 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Savings Tracker</title>
+    <title>Chosen Family Savings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 10px; }
-        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .member-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .status-low { color: red; font-weight: bold; }
-        .status-ok { color: green; }
-        button { background: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; }
+        body { background-color: #f4f7f6; }
+        .admin-card { background: #ffffff; border-radius: 15px; border-top: 5px solid #28a745; }
+        .member-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
-    <h2>Group Savings Dashboard</h2>
-    
-    <div class="container">
-    <div id="member-cards-container" class="row">
-        </div>
-</div>
+<div class="container py-4">
+    <h2 class="text-center fw-bold mb-4">Group Savings Dashboard</h2>
 
-    <div class="member-list" id="memberStats">
-        </div>
-<div class="card" id="adminArea">
-    <h3>Admin Tools</h3>
-    <button onclick="checkPassword()" id="adminBtn">Log Transaction (Admin Only)</button>
-    
-    <div id="transactionForm" style="display:none; margin-top:15px; border-top: 1px solid #ddd; padding-top:10px;">
-        <div id="savingsForm" style="display:none;"> </div>
-        <label>Member:</label>
-        <select id="memberSelect"></select><br><br>
-        <label>Type:</label>
-        <select id="typeSelect">
-            <option value="Deposit">Deposit</option>
-            <option value="Loan">Loan</option>
-            <option value="Loan Repayment">Loan Repayment</option>
-            <option value="Burial Expense">Burial Expense</option>
-        </select><br><br>
-        
-        <label>Amount (UGX):</label>
-        <input type="number" id="amountInput" placeholder="Enter amount"><br><br>
-        
-        <button onclick="submitTransaction()" style="background:#007bff;">Save to Google Sheet</button>
-    </div>
-<div id="savingsFormContainer" class="container mt-4 mb-4 p-4 bg-white rounded shadow-sm">
-    <h3 class="mb-3">Add New Transaction</h3>
-    
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold">Member Name</label>
-            <select id="memberName" class="form-select">
-                <option value="">-- Select Member --</option>
-                <option value="Nathan">Nathan</option>
-                <option value="Brian">Brian</option>
-                <option value="Shakirah">Shakirah</option>
-                <option value="Ashiraf">Ashiraf</option>
-                <option value="Fixer">Fixer</option>
-                <option value="Fadiga">Fadiga</option>
-                <option value="Tracy">Tracy</option>
-                <option value="Jackson">Jackson</option>
+    <div class="admin-card p-4 mb-5 shadow-sm">
+        <h4 class="mb-3">Add Transaction</h4>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Member Name</label>
+                <select id="name" class="form-select">
+                    <option value="Nathan">Nathan</option>
+                    <option value="Brian">Brian</option>
+                    <option value="Shakirah">Shakirah</option>
+                    <option value="Ashiraf">Ashiraf</option>
+                    <option value="Fixer">Fixer</option>
+                    <option value="Fadiga">Fadiga</option>
+                    <option value="Tracy">Tracy</option>
+                    <option value="Jackson">Jackson</option>
                 </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Amount (UGX)</label>
+                <input type="number" id="amt" class="form-control" placeholder="5000">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select id="type" class="form-select">
+                    <option value="Savings">Savings</option>
+                    <option value="Loan">Loan</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button onclick="sendData()" class="btn btn-success w-100">Submit</button>
+            </div>
         </div>
-        
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold">Amount (UGX)</label>
-            <input type="number" id="amount" class="form-control" placeholder="Enter amount">
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold">Transaction Type</label>
-            <select id="transType" class="form-select">
-                <option value="Savings">Savings</option>
-                <option value="Loan">Loan</option>
-                <option value="Expense">Expense</option>
-            </select>
-        </div>
+        <button onclick="undo()" class="btn btn-link text-danger mt-3 p-0" style="text-decoration:none">Undo last entry</button>
     </div>
 
-    <div class="mt-3">
-        <button onclick="submitData()" class="btn btn-success w-100 mb-2 py-2">
-            Submit Transaction
-        </button>
-        <button onclick="undoLastEntry()" class="btn btn-outline-danger w-100 py-2">
-            ⚠️ Undo Last Entry
-        </button>
+    <div id="display-area" class="row">
+        <div class="text-center">Loading savings data...</div>
     </div>
 </div>
+
 <script>
-   const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
-function renderDashboard(data) {
-    const container = document.getElementById('member-cards-container');
-    container.innerHTML = ""; // Clear old cards before drawing new ones
-    
+    const url = 'https://script.google.com/macros/s/AKfycbwQyVLdXhheH2Ddfaqj8soep8a6bSu5yi4i3Cfl0kGPs9LbovqToKzche8eYgL1g5tX/exec'; // <--- PUT YOUR DEPLOYMENT URL HERE
     const goal = 50000;
-    const totals = {};
-    
-    // 1. Calculate totals from the Google Sheet Data
-    // (Assuming Column B is Names and Column C is Amounts)
-    for (let i = 1; i < data.length; i++) {
-        const name = data[i][1]; 
-        const amount = parseFloat(data[i][2]) || 0;
-        if (name) {
-            totals[name] = (totals[name] || 0) + amount;
-        }
+    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Jackson"];
+
+    window.onload = getData;
+
+    async function getData() {
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            render(data);
+        } catch (e) { document.getElementById('display-area').innerHTML = "Error loading data."; }
     }
 
-    // 2. Define your 14 members
-    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Jackson", "Member9", "Member10", "Member11", "Member12", "Member13", "Member14"];
-
-    // 3. Create a card for every member
-    members.forEach(name => {
-        const saved = totals[name] || 0;
-        const remaining = goal - saved;
-        const statusColor = remaining <= 0 ? "text-success" : "text-danger";
-        const statusText = remaining <= 0 ? "GOAL REACHED!" : `Remaining: ${remaining.toLocaleString()} UGX`;
-
-        const cardHTML = `
-            <div class="col-md-4 mb-3">
-                <div class="card shadow-sm p-3">
-                    <h5 class="fw-bold">${name}</h5>
-                    <p class="mb-1">Saved: <strong>${saved.toLocaleString()} UGX</strong></p>
-                    <p class="${statusColor} mb-0" style="font-size: 0.9rem;">
-                        ${statusText}
-                    </p>
-                </div>
-            </div>
-        `;
-        container.innerHTML += cardHTML;
-    });
-}
-// 1. DOUBLE CHECK THIS URL - It must end in /exec
-const scriptURL = "https://script.google.com/macros/s/AKfycbxjsBWgwtaP__xYLRhctmEh5PW5RlnRN12iiK9uE-FQnqIJHUV_R1_-i9Uj53bQiJRq/exec"; 
-
-async function loadData() {
-    console.log("Attempting to fetch data...");
-    const container = document.getElementById('memberStats');
-    
-    try {
-        const response = await fetch(scriptURL);
+    function render(data) {
+        const area = document.getElementById('display-area');
+        area.innerHTML = "";
+        let totals = {};
         
-        if (!response.ok) {
-            throw new Error("Network response was not ok: " + response.statusText);
+        // Summing up logic
+        for(let i=1; i<data.length; i++) {
+            let n = data[i][1];
+            let a = parseFloat(data[i][2]) || 0;
+            if(n) totals[n] = (totals[n] || 0) + a;
         }
 
-        const transactions = await response.json();
-        console.log("Data received:", transactions);
-
-        if (transactions.length === 0) {
-            container.innerHTML = "<p>Connected! But no transactions found in the sheet yet.</p>";
-            // If the sheet is empty, still show the member names with 0 balance
-            displayEmptyMembers(container);
-            return;
-        }
-function checkPassword() {
-    let password = prompt("Enter Admin Password:");
-    if (password === "1234") { // You can change '1234' to your own secret code
-        document.getElementById('savingsForm').style.display = 'block';
-    } else {
-        alert("Incorrect Password");
+        members.forEach(m => {
+            let s = totals[m] || 0;
+            let r = Math.max(0, goal - s);
+            area.innerHTML += `
+                <div class="col-md-3 mb-3">
+                    <div class="card member-card p-3">
+                        <h5 class="fw-bold">${m}</h5>
+                        <p class="mb-1">Saved: ${s.toLocaleString()} UGX</p>
+                        <p class="small ${r === 0 ? 'text-success fw-bold' : 'text-danger'}">
+                            ${r === 0 ? 'GOAL MET!' : 'Remaining: ' + r.toLocaleString()}
+                        </p>
+                    </div>
+                </div>`;
+        });
     }
-}
-        // ... (The rest of your calculation logic here) ...
-        renderDashboard(transactions);
 
-    } catch (error) {
-        console.error("Fetch error:", error);
-        container.innerHTML = `<div style="color:red; padding:20px;">
-            <strong>Connection Error!</strong><br>
-            Make sure your Google Script is deployed as 'Anyone' and the URL is correct.<br>
-            <small>${error.message}</small>
-        </div>`;
+    async function sendData() {
+        const n = document.getElementById('name').value;
+        const a = document.getElementById('amt').value;
+        const t = document.getElementById('type').value;
+        if(!a) return alert("Enter amount");
+
+        await fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({member: n, amount: a, type: t}) });
+        alert("Saved!");
+        location.reload();
     }
-}
 
-function displayEmptyMembers(container) {
-    members.forEach(member => {
-        container.innerHTML += `
-            <div class="card">
-                <strong>${member}</strong><br>
-                Saved: 0 UGX<br>
-                <span class="status-low">Remaining: 50,000</span>
-            </div>`;
-    });
-}
-    document.getElementById('undoBtn').addEventListener('click', function() {
-    if (confirm("Are you sure you want to delete the very last transaction added?")) {
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxjsBWgwtaP__xYLRhctmEh5PW5RlnRN12iiK9uE-FQnqIJHUV_R1_-i9Uj53bQiJRq/exec';
-        
-        fetch(scriptURL + '?action=deleteLast')
-        .then(response => response.text())
-        .then(data => {
-            alert(data);
+    async function undo() {
+        if(confirm("Delete last entry?")) {
+            await fetch(url + "?action=deleteLast");
             location.reload();
-        })
-        .catch(error => console.error('Error!', error.message));
+        }
     }
-});
-    function openForm() {
-    document.getElementById('savingsForm').style.display = 'block';
-}
-
-function checkPassword() {
-    // We can add actual password logic here later!
-    alert("Admin access granted");
-}
-
-// Start the process
-loadData();
-    </script>
+</script>
 </body>
 </html>
