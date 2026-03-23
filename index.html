@@ -16,10 +16,10 @@
 
     <h2>Group Savings Dashboard</h2>
     
-    <div class="card">
-        <h3>Group Goal: 50,000 UGX per member</h3>
-        <p>Total Members: 14</p>
-    </div>
+    <div class="container">
+    <div id="member-cards-container" class="row">
+        </div>
+</div>
 
     <div class="member-list" id="memberStats">
         </div>
@@ -54,7 +54,47 @@
     </div>
 <script>
    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
+function renderDashboard(data) {
+    const container = document.getElementById('member-cards-container');
+    container.innerHTML = ""; // Clear old cards before drawing new ones
+    
+    const goal = 50000;
+    const totals = {};
+    
+    // 1. Calculate totals from the Google Sheet Data
+    // (Assuming Column B is Names and Column C is Amounts)
+    for (let i = 1; i < data.length; i++) {
+        const name = data[i][1]; 
+        const amount = parseFloat(data[i][2]) || 0;
+        if (name) {
+            totals[name] = (totals[name] || 0) + amount;
+        }
+    }
 
+    // 2. Define your 14 members
+    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Jackson", "Member9", "Member10", "Member11", "Member12", "Member13", "Member14"];
+
+    // 3. Create a card for every member
+    members.forEach(name => {
+        const saved = totals[name] || 0;
+        const remaining = goal - saved;
+        const statusColor = remaining <= 0 ? "text-success" : "text-danger";
+        const statusText = remaining <= 0 ? "GOAL REACHED!" : `Remaining: ${remaining.toLocaleString()} UGX`;
+
+        const cardHTML = `
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm p-3">
+                    <h5 class="fw-bold">${name}</h5>
+                    <p class="mb-1">Saved: <strong>${saved.toLocaleString()} UGX</strong></p>
+                    <p class="${statusColor} mb-0" style="font-size: 0.9rem;">
+                        ${statusText}
+                    </p>
+                </div>
+            </div>
+        `;
+        container.innerHTML += cardHTML;
+    });
+}
 // 1. DOUBLE CHECK THIS URL - It must end in /exec
 const scriptURL = "https://script.google.com/macros/s/AKfycbxjsBWgwtaP__xYLRhctmEh5PW5RlnRN12iiK9uE-FQnqIJHUV_R1_-i9Uj53bQiJRq/exec"; 
 
