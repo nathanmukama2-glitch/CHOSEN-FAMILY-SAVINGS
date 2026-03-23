@@ -48,6 +48,9 @@
     <div class="card">
         <h3>Add New Transaction</h3>
         <button onclick="openForm()">Log Deposit / Loan</button>
+        <button type="button" id="undoBtn" class="btn btn-outline-danger btn-block mt-2">
+    ⚠️ Undo Last Entry
+</button>
     </div>
 <script>
    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
@@ -99,6 +102,19 @@ function displayEmptyMembers(container) {
             </div>`;
     });
 }
+    document.getElementById('undoBtn').addEventListener('click', function() {
+    if (confirm("Are you sure you want to delete the very last transaction added?")) {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwfsF2grxRnDEsZlYf7mtBJAyAbWVu9c9Pa4A2MqbPnJv0n1N67Sw8qfTq38oZJY1KX/exec';
+        
+        fetch(scriptURL + '?action=deleteLast')
+        .then(response => response.text())
+        .then(data => {
+            alert(data);
+            location.reload();
+        })
+        .catch(error => console.error('Error!', error.message));
+    }
+});
 
 // Start the process
 loadData();
