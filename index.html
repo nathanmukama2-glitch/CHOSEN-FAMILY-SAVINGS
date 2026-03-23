@@ -56,7 +56,7 @@
    const members = ["Nathan", "Brian", "Shakirah", "Ashiraf", "Fixer", "Fadiga", "Tracy", "Allan", "Majorine", "Mama Mary", "Annet", "Jackson", "Sandra", "Fred"];
 
 // 1. DOUBLE CHECK THIS URL - It must end in /exec
-const scriptURL = "https://script.google.com/macros/s/AKfycbxKiRflHG_yk0E1XExDdiRGw8dG4Z7KYX-0XbGzv7i3UROuIu47ARDryRWVqqlIwpjj/exec"; 
+const scriptURL = "https://script.google.com/macros/s/AKfycbxjsBWgwtaP__xYLRhctmEh5PW5RlnRN12iiK9uE-FQnqIJHUV_R1_-i9Uj53bQiJRq/exec"; 
 
 async function loadData() {
     console.log("Attempting to fetch data...");
@@ -104,7 +104,7 @@ function displayEmptyMembers(container) {
 }
     document.getElementById('undoBtn').addEventListener('click', function() {
     if (confirm("Are you sure you want to delete the very last transaction added?")) {
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwfsF2grxRnDEsZlYf7mtBJAyAbWVu9c9Pa4A2MqbPnJv0n1N67Sw8qfTq38oZJY1KX/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxjsBWgwtaP__xYLRhctmEh5PW5RlnRN12iiK9uE-FQnqIJHUV_R1_-i9Uj53bQiJRq/exec';
         
         fetch(scriptURL + '?action=deleteLast')
         .then(response => response.text())
